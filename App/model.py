@@ -42,16 +42,136 @@ de creacion y consulta sobre las estructuras de datos.
 #                       API
 # -----------------------------------------------------
 
+
+def newAnalyzer():
+    """ Inicializa el analizador
+
+   stops: Tabla de hash para guardar los vertices del grafo
+   connections: Grafo para representar las rutas entre estaciones
+   components: Almacena la informacion de los componentes conectados
+   paths: Estructura que almancena los caminos de costo minimo desde un
+           vertice determinado a todos los otros vértices del grafo
+    """
+    try:
+        citibike = {
+            'stops': None,
+            'graph': None,
+            'components': None,
+        }
+
+        citibike['stops'] = m.newMap(numelements=14000,
+                                     maptype='PROBING',
+                                     comparefunction=compareStopIds)
+
+        citibike['graph'] = gr.newGraph(datastructure='ADJ_LIST',
+                                        directed=True,
+                                        size=1000,
+                                        comparefunction=compareStopIds)
+        return citibike
+    except Exception as exp:
+        error.reraise(exp, 'model:newAnalyzer')
+
+
 # Funciones para agregar informacion al grafo
 
-# ==============================
-# Funciones de consulta
-# ==============================
+def addTrip(citibike, trip):
+    origin = trip["start station id"]
+    destination = trip["end station id"]
+    duration = int(trip["tripduration"])
+    addStation(citibike, origin)
+    addStation(citibike, destination)
+    addConnection(citibike, origin, destination, duration)
 
+
+def addStation(citibike, stationid):
+
+    if not gr.containsVertex(citibike["graph"], stationid):
+        gr.insertVertex(citibike["graph"], stationid)
+    return citibike
+
+
+def addConnection(citibike, origin, destination, duration):
+    """
+    Adiciona un arco entre dos estaciones
+    """
+    edge = gr.getEdge(citibike["graph"], origin, destination)
+    if edge is None:
+        gr.addEdge(citibike["graph"], origin, destination, duration)
+    else:  # INTENTE PROBAR CON ESTA PARTE, PERO NO ESTA BIEN.
+        promedioTime = edge+duration/2
+        gr.addEdge(citibike["graph"], origin, destination, promedioTime)
+    return citibike
+
+    # ==============================
+    # Funciones de consulta
+    # ==============================
+
+
+def connectedComponents(citibike, id1, id2):
+    """
+    Calcula los componentes conectados del grafo
+    Se utiliza el algoritmo de Kosaraju
+    """
+    citibike['components'] = numSCC_2(citibike['graph'])
+    scc = numSCC(citibike['graph'])
+    pertenecer = sameCC(citibike['components'], id1, id2)
+    return (scc, pertenecer)
+
+
+def totalStops(analyzer):
+    """
+    Retorna el total de estaciones (vertices) del grafo
+    """
+    return gr.numVertices(analyzer['graph'])
+
+
+def totalConnections(analyzer):
+    """
+    Retorna el total arcos del grafo
+    """
+    return gr.numEdges(analyzer['graph'])
 # ==============================
 # Funciones Helper
 # ==============================
 
+
+def numSCC_2(graph):
+    return scc.KosarajuSCC(graph)
+
+
+def numSCC(graph):
+    sc = scc.KosarajuSCC(graph)
+    return scc.connectedComponents(sc)
+
+
+def sameCC(sc, station1, station2):
+    return scc.stronglyConnected(sc, station1, station2)
+
+
 # ==============================
 # Funciones de Comparacion
 # ==============================
+
+def compareStopIds(stop, keyvaluestop):
+    """
+    Compara dos estaciones
+    """
+    stopcode = keyvaluestop['key']
+    if (stop == stopcode):
+        return 0
+    elif (stop > stopcode):
+        return 1
+    else:
+        return -1
+
+
+def compareroutes(route1, route2):
+    """
+    Compara dos rutas
+    """
+    if (route1 == route2):
+        return 0
+    elif (route1 > route2):
+        return 1
+    else:
+        return -1
