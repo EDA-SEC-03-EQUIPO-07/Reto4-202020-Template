@@ -49,11 +49,11 @@ def KosarajuSCC(graph):
     """
     try:
         scc = {
-                'idscc': None,
-                'marked': None,
-                'grmarked': None,
-                'components': 0
-            }
+            'idscc': None,
+            'marked': None,
+            'grmarked': None,
+            'components': 0
+        }
 
         scc['idscc'] = map.newMap(g.numVertices(graph),
                                   maptype='PROBING',
@@ -117,6 +117,8 @@ def stronglyConnected(scc, verta, vertb):
         return False
     except Exception as exp:
         error.reraise(exp, 'dfo:Sconnected')
+
+# 'marked'
 
 
 def connectedComponents(scc):

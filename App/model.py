@@ -97,9 +97,6 @@ def addConnection(citibike, origin, destination, duration):
     edge = gr.getEdge(citibike["graph"], origin, destination)
     if edge is None:
         gr.addEdge(citibike["graph"], origin, destination, duration)
-    else:  # INTENTE PROBAR CON ESTA PARTE, PERO NO ESTA BIEN.
-        promedioTime = edge+duration/2
-        gr.addEdge(citibike["graph"], origin, destination, promedioTime)
     return citibike
 
     # ==============================
