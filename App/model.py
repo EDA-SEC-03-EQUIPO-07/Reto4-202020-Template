@@ -57,6 +57,7 @@ def newAnalyzer():
             'stops': None,
             'graph': None,
             'components': None,
+            'idscc': None
         }
 
         citibike['stops'] = m.newMap(numelements=14000,
@@ -73,7 +74,6 @@ def newAnalyzer():
 
 
 # Funciones para agregar informacion al grafo
-
 def addTrip(citibike, trip):
     origin = trip["start station id"]
     destination = trip["end station id"]
@@ -83,13 +83,6 @@ def addTrip(citibike, trip):
     addConnection(citibike, origin, destination, duration)
 
 
-def addStation(citibike, stationid):
-
-    if not gr.containsVertex(citibike["graph"], stationid):
-        gr.insertVertex(citibike["graph"], stationid)
-    return citibike
-
-
 def addConnection(citibike, origin, destination, duration):
     """
     Adiciona un arco entre dos estaciones
@@ -97,11 +90,20 @@ def addConnection(citibike, origin, destination, duration):
     edge = gr.getEdge(citibike["graph"], origin, destination)
     if edge is None:
         gr.addEdge(citibike["graph"], origin, destination, duration)
+
     return citibike
 
+
+def addStation(citibike, stationid):
+
+    if not gr.containsVertex(citibike["graph"], stationid):
+        gr.insertVertex(citibike["graph"], stationid)
+    return citibike
     # ==============================
     # Funciones de consulta
     # ==============================
+
+# REQUERIMIENTO 1
 
 
 def connectedComponents(citibike, id1, id2):
@@ -112,7 +114,28 @@ def connectedComponents(citibike, id1, id2):
     citibike['components'] = numSCC_2(citibike['graph'])
     scc = numSCC(citibike['graph'])
     pertenecer = sameCC(citibike['components'], id1, id2)
-    return (scc, pertenecer)
+    be = ""
+    if pertenecer == False:
+        be = "No están en el mismo componente"
+    else:
+        be = "Si están en el mismo componente"
+    return (be, scc)
+
+
+def segunda_consulta(citibike, time, identificador):
+    present = gr.containsVertex(citibike['graph'], identificador)
+    if present == True:
+        name = ""
+        component = 0
+        citibike["idscc"] = numSCC_2(citibike['graph'])
+        print(m.valueSet(citibike["idscc"])["idscc"])
+        #ite = it.newIterator(key)
+       # while it.hasNext(ite):
+        #    pro = it.next(ite)
+       #     if identificador == pro["key"]:
+      #          name = pro["key"]
+     #           component = pro["value"]
+    # return (name, component)
 
 
 def totalStops(analyzer):

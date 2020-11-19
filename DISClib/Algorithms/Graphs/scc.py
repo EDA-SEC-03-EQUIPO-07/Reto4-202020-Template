@@ -118,8 +118,6 @@ def stronglyConnected(scc, verta, vertb):
     except Exception as exp:
         error.reraise(exp, 'dfo:Sconnected')
 
-# 'marked'
-
 
 def connectedComponents(scc):
     """

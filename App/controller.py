@@ -96,3 +96,32 @@ def connectedComponents(analyzer, id1, id2):
     Numero de componentes fuertemente conectados
     """
     return model.connectedComponents(analyzer, id1, id2)
+
+
+def segunda_consulta(analyzer, time, identificador):
+    return model.segunda_consulta(analyzer, time, identificador)
+
+
+def tercera_consulta(analyzer):
+    return model.tercera_consulta(analyzer)
+
+
+def cuarta_consulta(analyzer, time, id1):
+    return model.cuarta_consulta(analyzer, time, id1)
+
+
+def quinta_consulta(analyzer, edad):
+    return model.quinta_consulta(analyzer, edad)
+
+
+def sexta_consulta(analyzer, start_station_latitude, start_station_longitude, end_station_latitued, end_station_longitude):
+    return model.sexta_consulta(analyzer, start_station_latitude, start_station_longitude, end_station_latitued, end_station_longitude)
+
+
+def septima_consulta(analyzer, edad):
+    return model.septima_consulta(analyzer, edad)
+
+
+def octava_consulta(analyzer, identificador, time):
+    time = datetime.datetime.strptime(time, '%Y-%m-%d')
+    return model.segunda_consulta(identificador, time.date())
