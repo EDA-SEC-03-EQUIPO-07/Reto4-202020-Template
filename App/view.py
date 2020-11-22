@@ -58,7 +58,7 @@ def printMenu():
     print("2- Cargar información de buses de singapur")
     print("3- Cantidad de cluester de viajes")
     print("4- Ruta turística circular")
-    print("5- Ruta turística de menor tiempo")
+    print("5- Estaciones críticas ")
     print("6- Ruta turística por resistencia")
     print("7- Ruta más corta entre estaciones")
     print("8- Ruta de interes turístico")
@@ -107,9 +107,11 @@ while True:
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 4:
-        time = input("Ingrese el tiempo disponible ")
+        time1 = input("Ingrese el tiempo disponible ")
+        time2 = input("Ingrese el tiempo disponible ")
         identificador = input("id de la estación ")
-        value_2 = controller.segunda_consulta(cont, time, identificador)
+        value_2 = controller.segunda_consulta(
+            cont, time1, time2, identificador)
         executiontime = timeit.timeit(number=1)
         print("La información es la siguiente " + str(value_2))
         print("Tiempo de ejecución: " + str(executiontime))
