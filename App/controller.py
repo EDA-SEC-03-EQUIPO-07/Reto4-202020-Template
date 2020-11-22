@@ -98,8 +98,8 @@ def connectedComponents(analyzer, id1, id2):
     return model.connectedComponents(analyzer, id1, id2)
 
 
-def segunda_consulta(analyzer, time, identificador):
-    return model.segunda_consulta(analyzer, time, identificador)
+def segunda_consulta(analyzer, time1, time2, identificador):
+    return model.segunda_consulta(analyzer, time1, time2, identificador)
 
 
 def tercera_consulta(analyzer):
