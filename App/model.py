@@ -25,6 +25,7 @@
  """
 import config
 from DISClib.ADT.graph import gr
+from DISClib.ADT import indexminpq as im
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import map as m
 from DISClib.ADT import list as lt
@@ -95,8 +96,6 @@ def addConnection(citibike, origin, destination, duration):
     edge = gr.getEdge(citibike["graph"], origin, destination)
     if edge is None:
         gr.addEdge(citibike["graph"], origin, destination, duration)
-        arrive = gr.indegree(citibike["graph"], destination)
-
     return citibike
 
 
@@ -105,7 +104,6 @@ def addStation(citibike, stationid):
     if not gr.containsVertex(citibike["graph"], stationid):
         gr.insertVertex(citibike["graph"], stationid)
     return citibike
-
     # ==============================
     # Funciones de consulta
     # ==============================
@@ -133,7 +131,6 @@ def segunda_consulta(citibike, time1, time2, identificador):
     present = gr.containsVertex(citibike['graph'], identificador)
     if present == True:
         nombre_inicial = identificador
-        #nombre_final = ""
         dicc = {}
         lista = lt.newList(cmpfunction=compareroutes)
         tiempo_total = abs(int(time1)-int(time2))
@@ -192,7 +189,7 @@ def tercera_consulta(citibike):
         arrive_1 = gr.outdegree(citibike["graph"], vertex_1)
         if arrive_1 > 0:
             om.put(tree_1, arrive_1, vertex_1)
-    print((citibike["graph"]))
+    print((citibike["stops"]))
     l_1 = []
     number_1 = om.size(tree_1)
     resta_1 = abs(number_1-3)
@@ -205,7 +202,6 @@ def tercera_consulta(citibike):
         l_1.append(name_1)
     diccionario["salidas"] = l_1
 
-    return diccionario
  # print(arbol)
     #print(om.keys(arbol, less, greater))
  #print((vertex, arrive))
