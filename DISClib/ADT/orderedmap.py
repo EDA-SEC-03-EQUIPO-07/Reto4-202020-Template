@@ -63,7 +63,7 @@ def put(map, key, value):
 
 def get(map, key):
     """
-    Retorna la pareja lleve-valor con llave igual a key
+    Retorna la pareja llave-valor con llave igual a key
     Args:
         map: La tabla de simbolos
         key: La llave asociada a la pareja

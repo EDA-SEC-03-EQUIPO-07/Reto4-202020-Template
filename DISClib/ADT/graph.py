@@ -208,7 +208,7 @@ def getEdge(graph, vertexa, vertexb):
     return gr.getEdge(graph, vertexa, vertexb)
 
 
-def addEdge(graph, vertexa, vertexb, weight=0):
+def addEdge(graph, vertexa, vertexb, weight=0, count=0):
     """
     Agrega un arco entre los vertices vertexa ---- vertexb, con peso weight.
     Si el grafo es no dirigido se adiciona dos veces el mismo arco,
@@ -226,7 +226,7 @@ def addEdge(graph, vertexa, vertexb, weight=0):
     Raises:
         Exception
     """
-    return gr.addEdge(graph, vertexa, vertexb, weight)
+    return gr.addEdge(graph, vertexa, vertexb, weight, count)
 
 
 def containsVertex(graph, vertex):

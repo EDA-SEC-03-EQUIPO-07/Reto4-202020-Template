@@ -96,11 +96,12 @@ def addConnection(citibike, origin, destination, duration):
     """
     edge = gr.getEdge(citibike["graph"], origin, destination)
     if edge is None:
-        gr.addEdge(citibike["graph"], origin, destination, int(duration))
+        gr.addEdge(citibike["graph"], origin, destination, int(duration), 1)
     else:
         peso = edge['weight']
         edge['weight'] = (peso+int(duration))/2
-
+        edge['count'] += 1
+        #gr.addEdge(citibike["graph"], origin,destination, promedio, (edge['count'] + 1))
     return citibike
 
 
@@ -205,15 +206,19 @@ def segunda_consulta(citibike, time1, time2, identificador):
 
 
 def tercera_consulta(citibike):
+    print(citibike['llegada'])
     tree = om.newMap(omaptype='RBT', comparefunction=compareroutes)
     diccionario = {}
     list_vertext = gr.vertices(citibike["graph"])
     ite = it.newIterator(list_vertext)
     while it.hasNext(ite):
         vertex = it.next(ite)
-        arrive = gr.indegree(citibike["graph"], vertex)
-        if arrive > 0:
-            om.put(tree, arrive, vertex)
+        arrive = gr.adjacents(citibike["graph"], vertex)
+        # if arrive['first'] is not None:
+
+        # print(arrive)
+        # if arrive > 0:
+        #   om.put(tree, arrive, vertex)
     l = []
     number = om.size(tree)
     resta = abs(number-3)
@@ -245,12 +250,18 @@ def tercera_consulta(citibike):
         name_1 = it.next(iterar)
         l_1.append(name_1)
     diccionario["salidas"] = l_1
-    return diccionario
- # print(arbol)
-    #print(om.keys(arbol, less, greater))
- #print((vertex, arrive))
-    # print(citibike["graph"])
-    #print(gr.adjacents(citibike["graph"], "143"))
+
+
+<< << << < HEAD
+return diccionario
+# print(arbol)
+#print(om.keys(arbol, less, greater))
+#print((vertex, arrive))
+# print(citibike["graph"])
+#print(gr.adjacents(citibike["graph"], "143"))
+== == == =
+print(gr.adjacents(citibike['graph'], '72'))
+>>>>>> > w.martinezh
 
 
 def totalStops(analyzer):
