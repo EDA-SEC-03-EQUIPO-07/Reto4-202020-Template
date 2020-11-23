@@ -188,7 +188,7 @@ def edges(graph):
                 edge = it.next(iteredge)
                 if (graph['directed']):
                     lt.addLast(lstresp, edge)
-                elif (not lt.isPresent(lstresp, edge, )):
+                elif (not lt.isPresent(lstresp, edge)):
                     lt.addLast(lstresp, edge)
         return lstresp
     except Exception as exp:
@@ -281,10 +281,12 @@ def getEdge(graph, vertexa, vertexb):
         itvertex = it.newIterator(lst)
         while (it.hasNext(itvertex)):
             edge = it.next(itvertex)
-            if (e.either(edge) == vertexa) and (e.other(edge, e.either(edge)) == vertexb):
-                return edge
-            elif (not graph['directed']) and (e.either(edge) == vertexb) and (e.other(edge, e.either(edge)) == vertexa):
-                return edge
+            if (graph['directed']):
+                if (e.either(edge) == vertexa and (e.other(edge, e.either(edge)) == vertexb)):
+                    return edge
+            elif(e.either(edge) == vertexa or (e.other(edge, e.either(edge)) == vertexa)):
+                if (e.either(edge) == vertexb or (e.other(edge, e.either(edge)) == vertexb)):
+                    return edge
         return None
     except Exception as exp:
         error.reraise(exp, 'ajlist:getedge')
@@ -309,7 +311,7 @@ def containsVertex(graph, vertex):
         error.reraise(exp, 'ajlist:containsvertex')
 
 
-def addEdge(graph, vertexa, vertexb, weight=0):
+def addEdge(graph, vertexa, vertexb, weight=0, count=0):
     """
     Agrega un arco entre los vertices vertexa ---- vertexb, con peso weight.
     Si el grafo es no dirigido se adiciona dos veces el mismo arco,
@@ -329,7 +331,7 @@ def addEdge(graph, vertexa, vertexb, weight=0):
     """
     try:
         # Se crea el arco
-        edge = e.newEdge(vertexa, vertexb, weight)
+        edge = e.newEdge(vertexa, vertexb, weight, count)
         # Se obtienen las listas de adyacencias de cada vertice
         # Se anexa a cada lista el arco correspondiente
         entrya = map.get(graph['vertices'], vertexa)
