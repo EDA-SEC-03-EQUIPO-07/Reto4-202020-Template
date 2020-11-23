@@ -25,6 +25,7 @@
  """
 import config
 from DISClib.ADT.graph import gr
+from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import map as m
 from DISClib.ADT import list as lt
@@ -55,20 +56,13 @@ def newAnalyzer():
     """
     try:
         citibike = {
-            'stops': None,
-            'graph': None,
-            'components': None,
-            'idscc': None
+            'salida': None,
+            'llegada': None,
+            'graph': None
         }
 
-        citibike['idscc'] = m.newMap(numelements=14000,
-                                     maptype='PROBING',
-                                     comparefunction=compareStopIds)
-
-        citibike['stops'] = m.newMap(numelements=14000,
-                                     maptype='PROBING',
-                                     comparefunction=compareStopIds)
-
+        citibike['salida'] = {}
+        citibike['llegada'] = {}
         citibike['graph'] = gr.newGraph(datastructure='ADJ_LIST',
                                         directed=True,
                                         size=1000,
@@ -83,9 +77,17 @@ def addTrip(citibike, trip):
     origin = trip["start station id"]
     destination = trip["end station id"]
     duration = int(trip["tripduration"])
-    addStation(citibike, origin)
-    addStation(citibike, destination)
-    addConnection(citibike, origin, destination, duration)
+    if origin != destination:
+        año = int(trip["birth year"])
+        latitudS = float(trip["start station latitude"])
+        longitudS = float(trip["start station longitude"])
+        latitudE = float(trip["end station latitude"])
+        longitudE = float(trip["end station longitude"])
+        añadirEstacionSalida(citibike, origin, año, latitudS, longitudS)
+        añadirEstacionLlegada(citibike, destination, año, latitudE, longitudE)
+        addStation(citibike, origin)
+        addStation(citibike, destination)
+        addConnection(citibike, origin, destination, duration)
 
 
 def addConnection(citibike, origin, destination, duration):
@@ -94,23 +96,64 @@ def addConnection(citibike, origin, destination, duration):
     """
     edge = gr.getEdge(citibike["graph"], origin, destination)
     if edge is None:
-        gr.addEdge(citibike["graph"], origin, destination, duration)
-        arrive = gr.indegree(citibike["graph"], destination)
+        gr.addEdge(citibike["graph"], origin, destination, int(duration))
+    else:
+        peso = edge['weight']
+        edge['weight'] = (peso+int(duration))/2
 
     return citibike
 
 
 def addStation(citibike, stationid):
-
     if not gr.containsVertex(citibike["graph"], stationid):
         gr.insertVertex(citibike["graph"], stationid)
     return citibike
 
-    # ==============================
-    # Funciones de consulta
-    # ==============================
 
-# REQUERIMIENTO 1
+def añadirEstacionLlegada(citibike, idestacion, año, latitud, longitud):
+    dicc = citibike['llegada']
+    if not (idestacion in dicc):
+        dicc[idestacion] = {'0-10': 0, '11-20': 0, '21-30': 0, '31-40': 0, '41-50': 0,
+                            '51-60': 0, '60+': 0, 'total': 0, 'latitud': latitud, 'longitud': longitud}
+
+    newDicc = dicc[idestacion]
+    newDicc[darRangoEdad(año)] += 1
+    newDicc['total'] += 1
+
+
+def añadirEstacionSalida(citibike, idestacion, año, latitud, longitud):
+    dicc = citibike['salida']
+    if not (idestacion in dicc):
+        dicc[idestacion] = {'0-10': 0, '11-20': 0, '21-30': 0, '31-40': 0, '41-50': 0,
+                            '51-60': 0, '60+': 0, 'total': 0, 'latitud': latitud, 'longitud': longitud}
+
+    newDicc = dicc[idestacion]
+    newDicc[darRangoEdad(año)] += 1
+    newDicc['total'] += 1
+
+
+def darRangoEdad(año):
+    rango = ''
+    edad = 2020-año
+    if edad >= 0 and edad <= 10:
+        rango = '0-10'
+    elif edad >= 11 and edad <= 20:
+        rango = '11-20'
+    elif edad >= 21 and edad <= 30:
+        rango = '21-30'
+    elif edad >= 31 and edad <= 40:
+        rango = '31-40'
+    elif edad >= 41 and edad <= 50:
+        rango = '41-50'
+    elif edad >= 51 and edad <= 60:
+        rango = '51-60'
+    else:
+        rango = '60+'
+
+    return rango
+# ==============================
+# Funciones de consulta
+# ==============================
 
 
 def connectedComponents(citibike, id1, id2):
@@ -133,7 +176,6 @@ def segunda_consulta(citibike, time1, time2, identificador):
     present = gr.containsVertex(citibike['graph'], identificador)
     if present == True:
         nombre_inicial = identificador
-        #nombre_final = ""
         dicc = {}
         lista = lt.newList(cmpfunction=compareroutes)
         tiempo_total = abs(int(time1)-int(time2))
@@ -146,7 +188,7 @@ def segunda_consulta(citibike, time1, time2, identificador):
             pro = it.next(ite)
             pertenecer = sameCC(citibike['components'], nombre_inicial, pro)
             if pertenecer == True:
-                peso = gr.getEdge(citibike["graph"], nombre_inicial, pro)
+                print(gr.getEdge(citibike["graph"], nombre_inicial, pro))
                 p = peso["weight"]
                 res = abs(tiempo_total-(p+20))
                 tiempo = res
@@ -192,7 +234,6 @@ def tercera_consulta(citibike):
         arrive_1 = gr.outdegree(citibike["graph"], vertex_1)
         if arrive_1 > 0:
             om.put(tree_1, arrive_1, vertex_1)
-    print((citibike["graph"]))
     l_1 = []
     number_1 = om.size(tree_1)
     resta_1 = abs(number_1-3)
@@ -204,7 +245,6 @@ def tercera_consulta(citibike):
         name_1 = it.next(iterar)
         l_1.append(name_1)
     diccionario["salidas"] = l_1
-
     return diccionario
  # print(arbol)
     #print(om.keys(arbol, less, greater))
