@@ -25,6 +25,7 @@
  """
 import config
 from DISClib.ADT.graph import gr
+from DISClib.ADT import minpq as mi
 from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import map as m
@@ -58,9 +59,14 @@ def newAnalyzer():
         citibike = {
             'salida': None,
             'llegada': None,
-            'graph': None
+            'graph': None,
+            'number': None
         }
 
+        citibike["number"] = om.newMap(
+            omaptype='RBT', comparefunction=compareroutes)
+        # citibike["stops leave"] = om.newMap(
+        #    omaptype='RBT', comparefunction=compareroutes)
         citibike['salida'] = {}
         citibike['llegada'] = {}
         citibike['graph'] = gr.newGraph(datastructure='ADJ_LIST',
@@ -101,7 +107,6 @@ def addConnection(citibike, origin, destination, duration):
         peso = edge['weight']
         edge['weight'] = (peso+int(duration))/2
         edge['count'] += 1
-        #gr.addEdge(citibike["graph"], origin,destination, promedio, (edge['count'] + 1))
     return citibike
 
 
@@ -198,7 +203,7 @@ def segunda_consulta(citibike, time1, time2, identificador):
                 dicc["tiempo"] = peso
                 lt.addLast(lista, dicc)
                 nombre_inicial = pro
-                #nombre_final = pro
+                # nombre_final = pro
         answer = (number, lista)
     else:
         answer = "La estación no es válida, ingrese otra. "
@@ -206,19 +211,54 @@ def segunda_consulta(citibike, time1, time2, identificador):
 
 
 def tercera_consulta(citibike):
-    print(citibike['llegada'])
     tree = om.newMap(omaptype='RBT', comparefunction=compareroutes)
+    tree_1 = om.newMap(omaptype='RBT', comparefunction=compareroutes)
+    tree_2 = om.newMap(omaptype='RBT', comparefunction=compareroutes)
     diccionario = {}
+    diccionario_salida = {}
+    diccionario_llegada = {}
+    diccionario_menos = {}
     list_vertext = gr.vertices(citibike["graph"])
     ite = it.newIterator(list_vertext)
     while it.hasNext(ite):
         vertex = it.next(ite)
         arrive = gr.adjacents(citibike["graph"], vertex)
-        #if arrive['first'] is not None:
+        if arrive is not None:
+            iterador = it.newIterator(arrive)
+            while it.hasNext(iterador):
+                vertex_arrive = it.next(iterador)
+                num = gr.getEdge(citibike["graph"], vertex, vertex_arrive)
+                # print(num)
+                if num['vertexA'] in diccionario_salida:
+                    diccionario_salida[num['vertexA']] += num['count']
+                if num['vertexA'] not in diccionario_salida:
+                    diccionario_salida[num['vertexA']] = num['count']
+                if num['vertexB'] in diccionario_llegada:
+                    diccionario_llegada[num['vertexB']] += num['count']
+                else:
+                    diccionario_llegada[num['vertexB']] = num['count']
 
-            # print(arrive)
-            # if arrive > 0:
-            #   om.put(tree, arrive, vertex)
+    for llave_salida in diccionario_salida:
+        om.put(tree, diccionario_salida[llave_salida], llave_salida)
+        diccionario_menos[llave_salida] = diccionario_salida[llave_salida]
+        if llave_salida in diccionario_llegada:
+            diccionario_menos[llave_salida] += diccionario_llegada[llave_salida]
+
+    for llave_menos in diccionario_menos:
+        om.put(tree_2, diccionario_menos[llave_menos], llave_menos)
+    l_2 = []
+    number_2 = om.size(tree_2)
+    resta_2 = abs(number_2-3)
+    re = abs(number_2-resta_2)
+    less_2 = om.select(tree_2, re-1)
+    greater_2 = om.minKey(tree_2)
+    ran_2 = om.values(tree_2, greater_2, less_2)
+    i_2 = it.newIterator(ran_2)
+    while it.hasNext(i_2):
+        name_2 = it.next(i_2)
+        l_2.append(name_2)
+    diccionario["Menos salidas y llegadas de viajes"] = l_2
+
     l = []
     number = om.size(tree)
     resta = abs(number-3)
@@ -229,16 +269,11 @@ def tercera_consulta(citibike):
     while it.hasNext(i):
         name = it.next(i)
         l.append(name)
-    diccionario["llegadas"] = l
+    l.reverse()
+    diccionario["salida"] = l
 
-    tree_1 = om.newMap(omaptype='RBT', comparefunction=compareroutes)
-    list_vertext_1 = gr.vertices(citibike["graph"])
-    ite_1 = it.newIterator(list_vertext_1)
-    while it.hasNext(ite_1):
-        vertex_1 = it.next(ite_1)
-        arrive_1 = gr.outdegree(citibike["graph"], vertex_1)
-        if arrive_1 > 0:
-            om.put(tree_1, arrive_1, vertex_1)
+    for llave_llegada in diccionario_llegada:
+        om.put(tree_1, diccionario_llegada[llave_llegada], llave_llegada)
     l_1 = []
     number_1 = om.size(tree_1)
     resta_1 = abs(number_1-3)
@@ -249,8 +284,13 @@ def tercera_consulta(citibike):
     while it.hasNext(iterar):
         name_1 = it.next(iterar)
         l_1.append(name_1)
-    diccionario["salidas"] = l_1
-    print(gr.adjacents(citibike['graph'], '72'))
+    l_1.reverse()
+    diccionario["llegada"] = l_1
+    return diccionario
+
+    # print(diccionario_salida)
+
+    # print(diccionario_llegada)
 
 
 def totalStops(analyzer):
