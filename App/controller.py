@@ -105,7 +105,6 @@ def segunda_consulta(analyzer, time1, time2, identificador):
 def tercera_consulta(analyzer):
     return model.tercera_consulta(analyzer)
 
-
 def cuarta_consulta(analyzer, time, id1):
     return model.cuarta_consulta(analyzer, time, id1)
 
