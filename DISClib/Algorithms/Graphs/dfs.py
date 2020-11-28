@@ -47,9 +47,9 @@ def DepthFirstSearch(graph, source):
     """
     try:
         search = {
-                  'source': source,
-                  'visited': None,
-                  }
+            'source': source,
+            'visited': None,
+        }
 
         search['visited'] = map.newMap(numelements=g.numVertices(graph),
                                        maptype='PROBING',
@@ -117,7 +117,7 @@ def pathTo(search, vertex):
     vertice vertex
     Args:
         search: La estructura con el recorrido
-        vertex: Vertice de destingo
+        vertex: Vertice de destino
     Returns:
         Una pila con el camino entre el vertices source y el
         vertice vertex

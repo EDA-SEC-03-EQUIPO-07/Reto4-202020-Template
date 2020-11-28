@@ -25,8 +25,10 @@
  """
 import config
 from DISClib.ADT.graph import gr
+from DISClib.Algorithms.Graphs import dfs as d
 from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import orderedmap as om
+from DISClib.ADT import stack as st
 from DISClib.ADT import map as m
 from DISClib.ADT import list as lt
 from DISClib.DataStructures import listiterator as it
@@ -58,9 +60,17 @@ def newAnalyzer():
         citibike = {
             'salida': None,
             'llegada': None,
-            'graph': None
+            'graph': None,
+            'components': None,
+            'idscc': None
         }
 
+        citibike['idscc'] = m.newMap(numelements=14000,
+                                     maptype='PROBING',
+                                     comparefunction=compareStopIds)
+        citibike['components'] = m.newMap(numelements=14000,
+                                          maptype='PROBING',
+                                          comparefunction=compareStopIds)
         citibike['salida'] = {}
         citibike['llegada'] = {}
         citibike['graph'] = gr.newGraph(datastructure='ADJ_LIST',
@@ -101,7 +111,6 @@ def addConnection(citibike, origin, destination, duration):
         peso = edge['weight']
         edge['weight'] = (peso+int(duration))/2
         edge['count'] += 1
-        #gr.addEdge(citibike["graph"], origin,destination, promedio, (edge['count'] + 1))
     return citibike
 
 
@@ -162,63 +171,153 @@ def connectedComponents(citibike, id1, id2):
     Calcula los componentes conectados del grafo
     Se utiliza el algoritmo de Kosaraju
     """
-    citibike['components'] = numSCC_2(citibike['graph'])
-    scc = numSCC(citibike['graph'])
-    pertenecer = sameCC(citibike['components'], id1, id2)
-    be = ""
-    if pertenecer == False:
-        be = "No están en el mismo componente"
+    scc = 0
+    present = gr.containsVertex(citibike['graph'], id1)
+    present_1 = gr.containsVertex(citibike['graph'], id2)
+    if (present == True) and (present_1 == True):
+        citibike['components'] = numSCC_2(citibike['graph'])
+        scc = numSCC(citibike['graph'])
+        pertenecer = sameCC(citibike['components'], id1, id2)
+        be = ""
+        if pertenecer == False:
+            be = "No están en el mismo componente. "
+        else:
+            be = "Si están en el mismo componente. "
     else:
-        be = "Si están en el mismo componente"
+        be = "Una o dos estaciones son no válidas. "
     return (be, scc)
 
 
 def segunda_consulta(citibike, time1, time2, identificador):
     present = gr.containsVertex(citibike['graph'], identificador)
     if present == True:
-        nombre_inicial = identificador
+        segundos = (20*60)
+        diccionario = {}
         dicc = {}
-        lista = lt.newList(cmpfunction=compareroutes)
-        tiempo_total = abs(int(time1)-int(time2))
+        list_vertex = lt.newList(cmpfunction=compareroutes)
         citibike['components'] = numSCC_2(citibike['graph'])
-        number = numSCC(citibike['graph'])
-        key = gr.adjacents(citibike['graph'], nombre_inicial)
-        tiempo = 0
+        key = gr.adjacents(citibike['graph'], identificador)
         ite = it.newIterator(key)
-        while tiempo < tiempo_total and it.hasNext(ite):
+        while it.hasNext(ite):
             pro = it.next(ite)
-            pertenecer = sameCC(citibike['components'], nombre_inicial, pro)
+            pertenecer = sameCC(citibike['components'], identificador, pro)
             if pertenecer == True:
-                print(gr.getEdge(citibike["graph"], nombre_inicial, pro))
-                p = peso["weight"]
-                res = abs(tiempo_total-(p+20))
-                tiempo = res
-                dicc["inicial"] = nombre_inicial
-                dicc["final"] = pro
-                dicc["tiempo"] = peso
-                lt.addLast(lista, dicc)
-                nombre_inicial = pro
-                #nombre_final = pro
-        answer = (number, lista)
+                lt.addLast(list_vertex, pro)
+
+        l = []
+        l_1 = []
+        contador = 0
+        estrucura = d.DepthFirstSearch(citibike['graph'], identificador)
+        tiempo_total = abs(int(time1)-int(time2))
+        iterador = it.newIterator(list_vertex)
+        while it.hasNext(iterador):
+            enlace = it.next(iterador)
+            true_or_false = d.hasPathTo(estrucura, enlace)
+            ruta = d.pathTo(estrucura, enlace)
+            if (true_or_false == True) and (lt.size(ruta) > 2):
+                nombre_inicial = identificador
+                tiempo = 0
+                delete = lt.removeFirst(ruta)
+                last = lt.lastElement(ruta)
+                iterado = it.newIterator(ruta)
+                while it.hasNext(iterado):
+                    enla = it.next(iterado)
+                    obtener_peso = gr.getEdge(
+                        citibike['graph'], nombre_inicial, enla)
+                    if (obtener_peso is not None) and (tiempo_total > obtener_peso["weight"]+segundos) and (nombre_inicial != enla):
+                        tiempo_total = abs(
+                            tiempo_total-(obtener_peso["weight"]+segundos))
+                        tiempo += (obtener_peso['weight']+segundos)
+                        if enla == last:
+                            obtener_peso_inverso = gr.getEdge(
+                                citibike['graph'], enla, identificador)
+                            if (obtener_peso_inverso is not None) and (tiempo_total > obtener_peso_inverso["weight"]):
+                                tiempo += obtener_peso_inverso["weight"]
+                                l.append(delete)
+                                l.append(enla)
+                                l.append(tiempo)
+                                diccionario['rutas circulares'] = l
+                                contador += 1
+                            elif (obtener_peso_inverso is None):
+                                l_1.append(delete)
+                                l_1.append(enla)
+                                l_1.append(tiempo)
+                                dicc['rutas no circulares'] = l_1
+                        nombre_inicial = enla
+                    else:
+                        answer = "tiempo"
+
+            elif (true_or_false == True) and (lt.size(ruta) == 2):
+                posicion = lt.getElement(ruta, 2)
+                obtener_peso_1 = gr.getEdge(
+                    citibike['graph'], identificador, posicion)
+                if (tiempo_total > obtener_peso_1["weight"]+segundos):
+                    tiempo_total = abs(
+                        tiempo_total-(obtener_peso_1["weight"]+segundos))
+                    obtener_peso_inverso_1 = gr.getEdge(
+                        citibike['graph'], posicion, identificador)
+                    if (obtener_peso_inverso_1 is not None) and (tiempo_total > obtener_peso_inverso_1["weight"]):
+                        l.append(identificador)
+                        l.append(posicion)
+                        l.append(
+                            (obtener_peso_1['weight'] + segundos+obtener_peso_inverso_1["weight"]))
+                        diccionario['rutas circulares'] = l
+                        contador += 1
+
+        answer = (diccionario, contador, dicc)
     else:
         answer = "La estación no es válida, ingrese otra. "
     return answer
 
 
 def tercera_consulta(citibike):
-    print(citibike['llegada'])
     tree = om.newMap(omaptype='RBT', comparefunction=compareroutes)
+    tree_1 = om.newMap(omaptype='RBT', comparefunction=compareroutes)
+    tree_2 = om.newMap(omaptype='RBT', comparefunction=compareroutes)
     diccionario = {}
+    diccionario_salida = {}
+    diccionario_llegada = {}
+    diccionario_menos = {}
     list_vertext = gr.vertices(citibike["graph"])
     ite = it.newIterator(list_vertext)
     while it.hasNext(ite):
         vertex = it.next(ite)
         arrive = gr.adjacents(citibike["graph"], vertex)
-        # if arrive['first'] is not None:
+        if arrive is not None:
+            iterador = it.newIterator(arrive)
+            while it.hasNext(iterador):
+                vertex_arrive = it.next(iterador)
+                num = gr.getEdge(citibike["graph"], vertex, vertex_arrive)
+                if num['vertexA'] in diccionario_salida:
+                    diccionario_salida[num['vertexA']] += num['count']
+                if num['vertexA'] not in diccionario_salida:
+                    diccionario_salida[num['vertexA']] = num['count']
+                if num['vertexB'] in diccionario_llegada:
+                    diccionario_llegada[num['vertexB']] += num['count']
+                else:
+                    diccionario_llegada[num['vertexB']] = num['count']
 
-        # print(arrive)
-        # if arrive > 0:
-        #   om.put(tree, arrive, vertex)
+    for llave_salida in diccionario_salida:
+        om.put(tree, diccionario_salida[llave_salida], llave_salida)
+        diccionario_menos[llave_salida] = diccionario_salida[llave_salida]
+        if llave_salida in diccionario_llegada:
+            diccionario_menos[llave_salida] += diccionario_llegada[llave_salida]
+
+    for llave_menos in diccionario_menos:
+        om.put(tree_2, diccionario_menos[llave_menos], llave_menos)
+    l_2 = []
+    number_2 = om.size(tree_2)
+    resta_2 = abs(number_2-3)
+    re = abs(number_2-resta_2)
+    less_2 = om.select(tree_2, re-1)
+    greater_2 = om.minKey(tree_2)
+    ran_2 = om.values(tree_2, greater_2, less_2)
+    i_2 = it.newIterator(ran_2)
+    while it.hasNext(i_2):
+        name_2 = it.next(i_2)
+        l_2.append(name_2)
+    diccionario["Menos salidas y llegadas de viajes"] = l_2
+
     l = []
     number = om.size(tree)
     resta = abs(number-3)
@@ -229,16 +328,11 @@ def tercera_consulta(citibike):
     while it.hasNext(i):
         name = it.next(i)
         l.append(name)
-    diccionario["llegadas"] = l
+    l.reverse()
+    diccionario["salida"] = l
 
-    tree_1 = om.newMap(omaptype='RBT', comparefunction=compareroutes)
-    list_vertext_1 = gr.vertices(citibike["graph"])
-    ite_1 = it.newIterator(list_vertext_1)
-    while it.hasNext(ite_1):
-        vertex_1 = it.next(ite_1)
-        arrive_1 = gr.outdegree(citibike["graph"], vertex_1)
-        if arrive_1 > 0:
-            om.put(tree_1, arrive_1, vertex_1)
+    for llave_llegada in diccionario_llegada:
+        om.put(tree_1, diccionario_llegada[llave_llegada], llave_llegada)
     l_1 = []
     number_1 = om.size(tree_1)
     resta_1 = abs(number_1-3)
@@ -249,19 +343,9 @@ def tercera_consulta(citibike):
     while it.hasNext(iterar):
         name_1 = it.next(iterar)
         l_1.append(name_1)
-    diccionario["salidas"] = l_1
-
-
-<< << << < HEAD
-return diccionario
-# print(arbol)
-#print(om.keys(arbol, less, greater))
-#print((vertex, arrive))
-# print(citibike["graph"])
-#print(gr.adjacents(citibike["graph"], "143"))
-== == == =
-print(gr.adjacents(citibike['graph'], '72'))
->>>>>> > w.martinezh
+    l_1.reverse()
+    diccionario["llegada"] = l_1
+    return diccionario
 
 
 def totalStops(analyzer):

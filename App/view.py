@@ -107,19 +107,19 @@ while True:
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 4:
-        time1 = input("Ingrese el tiempo disponible ")
-        time2 = input("Ingrese el tiempo disponible ")
+        time1 = input("Ingrese el tiempo inicial en segundos ")
+        time2 = input("Ingrese el tiempo final en segundos ")
         identificador = input("id de la estación ")
         value_2 = controller.segunda_consulta(
             cont, time1, time2, identificador)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente " + str(value_2))
+        print("La información es la siguiente: " + str(value_2))
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 5:
         value_3 = controller.tercera_consulta(cont)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente " + str(value_3))
+        print("La información es la siguiente: " + str(value_3))
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 6:
@@ -127,7 +127,7 @@ while True:
         start_station_id = input("id de la estación inicial ")
         value_4 = controller.cuarta_consulta(cont, time_max, start_station_id)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente " + str(value_4))
+        print("La información es la siguiente: " + str(value_4))
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 7:
@@ -135,7 +135,7 @@ while True:
             "Ingrese alguno de los siguientes rangos de edad 0-10 \n, 11-20\n, 21-30\n, 31-40\n, 41-50\n, 51-60\n, 60 +\n ")
         value_5 = controller.quinta_consulta(cont, edad)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente " + str(value_5))
+        print("La información es la siguiente: " + str(value_5))
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 8:
@@ -150,7 +150,7 @@ while True:
         value_6 = controller.sexta_consulta(cont,
                                             start_station_latitude, start_station_longitude, end_station_latitude, end_station_longitude)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente " + str(value_6))
+        print("La información es la siguiente: " + str(value_6))
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 9:
@@ -166,7 +166,7 @@ while True:
         time = input("Ingrese una fecha ")
         value_8 = controller.octava_consulta(cont, bike_id, time)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente " + str(value_8))
+        print("La información es la siguiente: " + str(value_8))
         print("Tiempo de ejecución: " + str(executiontime))
     else:
         sys.exit(0)
