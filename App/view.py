@@ -125,34 +125,36 @@ while True:
     elif int(inputs[0]) == 6:
         time_max = input("Ingrese el tiempo máximo ")
         start_station_id = input("id de la estación inicial ")
-        value_4 = controller.cuarta_consulta(cont, time_max, start_station_id)
+        idstation, finalvertex, lista = controller.cuarta_consulta(cont, time_max, start_station_id)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente: " + str(value_4))
+        print("La información es la siguiente \nEstación Salida: " + str(idstation) + "\nEstación Llegada: " + str(finalvertex) + "\nRutas: ")
+        print(lista)
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 7:
-        edad = input = (
-            "Ingrese alguno de los siguientes rangos de edad 0-10 \n, 11-20\n, 21-30\n, 31-40\n, 41-50\n, 51-60\n, 60 +\n ")
-        value_5 = controller.quinta_consulta(cont, edad)
+        edad = input("Ingrese alguno de los siguientes rangos de edad \n0-10, \n11-20, \n21-30, \n31-40, \n41-50, \n51-60, \n60+\n")
+        estacionsalida, estacionllegada, camino = controller.quinta_consulta(cont, edad)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente: " + str(value_5))
+        print("La información es la siguiente \nEstación Salida: " + str(estacionsalida) + "\nEstación Llegada: " + str(estacionllegada) + "\nRutas: ")
+        print(camino)
         print("Tiempo de ejecución: " + str(executiontime))
 
     elif int(inputs[0]) == 8:
-        start_station_latitude = input = (
+        start_station_latitude = input(
             "Ingrese la latitud de su ubicación actual ")
-        start_station_longitude = input = (
+        start_station_longitude = input(
             "Ingrese la longitud de su ubicación actual ")
-        end_station_latitude = input = (
+        end_station_latitude = input(
             "Ingrese la latitud a donde quiere viajar ")
-        end_station_longitude = input = (
+        end_station_longitude = input(
             "Ingrese la longitud a donde quiere viajar ")
-        value_6 = controller.sexta_consulta(cont,
+        estacionsalida, estacionllegada, duracion, camino = controller.sexta_consulta(cont,
                                             start_station_latitude, start_station_longitude, end_station_latitude, end_station_longitude)
         executiontime = timeit.timeit(number=1)
-        print("La información es la siguiente: " + str(value_6))
+        print("La información es la siguiente \nEstación Salida: " + str(estacionsalida) + "\nEstación Llegada: " + str(estacionllegada) + "\nDuración de viaje: " + str(duracion) + "\nRutas: ")
+        print(camino)
         print("Tiempo de ejecución: " + str(executiontime))
-
+        
     elif int(inputs[0]) == 9:
         edad = input = (
             "Ingrese alguno de los siguientes rangos de edad 0-10 \n, 11-20\n, 21-30\n, 31-40\n, 41-50\n, 51-60\n, 60 +\n ")

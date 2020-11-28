@@ -24,6 +24,7 @@
  *
  """
 import config
+import math
 from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Graphs import dfs as d
 from DISClib.DataStructures import mapentry as me
@@ -35,6 +36,7 @@ from DISClib.DataStructures import listiterator as it
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
+from DISClib.ADT import stack
 assert config
 
 """
@@ -60,19 +62,14 @@ def newAnalyzer():
         citibike = {
             'salida': None,
             'llegada': None,
-            'graph': None,
-            'components': None,
-            'idscc': None
+            'graph': None
         }
-
-        citibike['idscc'] = m.newMap(numelements=14000,
-                                     maptype='PROBING',
+        citibike['salida'] = m.newMap(numelements=200,
+                                     maptype='CHAINING',
                                      comparefunction=compareStopIds)
-        citibike['components'] = m.newMap(numelements=14000,
-                                          maptype='PROBING',
-                                          comparefunction=compareStopIds)
-        citibike['salida'] = {}
-        citibike['llegada'] = {}
+        citibike['llegada'] = m.newMap(numelements=500,
+                                     maptype='CHAINING',
+                                     comparefunction=compareStopIds)
         citibike['graph'] = gr.newGraph(datastructure='ADJ_LIST',
                                         directed=True,
                                         size=1000,
@@ -121,25 +118,30 @@ def addStation(citibike, stationid):
 
 
 def añadirEstacionLlegada(citibike, idestacion, año, latitud, longitud):
-    dicc = citibike['llegada']
-    if not (idestacion in dicc):
-        dicc[idestacion] = {'0-10': 0, '11-20': 0, '21-30': 0, '31-40': 0, '41-50': 0,
-                            '51-60': 0, '60+': 0, 'total': 0, 'latitud': latitud, 'longitud': longitud}
+    mapa = citibike['llegada']
+    if not (m.contains(mapa, idestacion)):
+        dicc = {'0-10':0,'11-20':0,'21-30':0,'31-40':0,'41-50':0,'51-60':0,'60+':0,'total':0,'latitud':latitud,'longitud':longitud}
+    else:
+        dicc = me.getValue(m.get(mapa, idestacion))
 
-    newDicc = dicc[idestacion]
-    newDicc[darRangoEdad(año)] += 1
-    newDicc['total'] += 1
+    newDicc = dicc
+    newDicc[darRangoEdad(año)]+=1
+    newDicc['total']+=1
 
+    m.put(mapa, idestacion, newDicc)
 
 def añadirEstacionSalida(citibike, idestacion, año, latitud, longitud):
-    dicc = citibike['salida']
-    if not (idestacion in dicc):
-        dicc[idestacion] = {'0-10': 0, '11-20': 0, '21-30': 0, '31-40': 0, '41-50': 0,
-                            '51-60': 0, '60+': 0, 'total': 0, 'latitud': latitud, 'longitud': longitud}
+    mapa = citibike['salida']
+    if not (m.contains(mapa, idestacion)):
+        dicc = {'0-10':0,'11-20':0,'21-30':0,'31-40':0,'41-50':0,'51-60':0,'60+':0,'total':0,'latitud':latitud,'longitud':longitud}
+    else:
+        dicc = me.getValue(m.get(mapa, idestacion))
 
-    newDicc = dicc[idestacion]
-    newDicc[darRangoEdad(año)] += 1
-    newDicc['total'] += 1
+    newDicc = dicc
+    newDicc[darRangoEdad(año)]+=1
+    newDicc['total']+=1
+
+    m.put(mapa, idestacion, newDicc)
 
 
 def darRangoEdad(año):
@@ -360,6 +362,125 @@ def totalConnections(analyzer):
     Retorna el total arcos del grafo
     """
     return gr.numEdges(analyzer['graph'])
+
+def cuarta_consulta(citibike, time, idstation):
+    djkgraph = djk.Dijkstra(citibike['graph'], idstation)
+    vertices = gr.vertices(citibike['graph'])
+
+    keyvertex = vertices
+    itevertex = it.newIterator(keyvertex)
+
+    maxvertex = -1
+    lista = None
+    finalvertex = -1
+
+    while(it.hasNext(itevertex)):
+        vertex = it.next(itevertex)
+
+        if(djk.distTo(djkgraph, vertex) <= float(time) and maxvertex < stack.size(djk.pathTo(djkgraph, vertex))):
+            maxvertex = stack.size(djk.pathTo(djkgraph, vertex))
+            lista = djk.pathTo(djkgraph, vertex)
+            finalvertex = vertex
+
+    return idstation, finalvertex, lista
+
+
+def quinta_consulta(citibike, agerange):
+    keysalida = m.keySet(citibike['salida'])
+    keyllegada = m.keySet(citibike['llegada'])
+    itellegada = it.newIterator(keyllegada)
+    itesalida = it.newIterator(keysalida)
+
+    maxllegada = -1
+    maxsalida = -1
+    idllegada = -1
+    idsalida = -1
+
+    while(it.hasNext(itellegada) or it.hasNext(itesalida)):
+        if(it.hasNext(itesalida)):
+            salida = it.next(itesalida)
+            salidaentry = m.get(citibike['salida'], salida)
+            if(maxsalida < me.getValue(salidaentry)[agerange]):
+                maxsalida = me.getValue(salidaentry)[agerange]
+                idsalida = me.getKey(salidaentry)
+
+
+                
+        if(it.hasNext(itellegada)):
+            llegada = it.next(itellegada)
+            llegadaentry = m.get(citibike['llegada'], llegada)
+            if(maxllegada < me.getValue(llegadaentry)[agerange]):
+                maxllegada = me.getValue(llegadaentry)[agerange]
+                idllegada = me.getKey(llegadaentry)
+
+    djkgraph = djk.Dijkstra(citibike['graph'], idsalida)
+    camino = djk.pathTo(djkgraph, idllegada)
+
+    return idsalida, idllegada, camino   
+
+
+
+def sexta_consulta(citibike, latitud0, longitud0, latitud1, longitud1):
+    keysalida = m.keySet(citibike['salida'])
+    keyllegada = m.keySet(citibike['llegada'])
+    itellegada = it.newIterator(keyllegada)
+    itesalida = it.newIterator(keysalida)
+
+    maxradiollegada = 5000
+    maxradiosalida = 5000
+    idllegada = -1
+    idsalida = -1
+
+    while(it.hasNext(itellegada) or it.hasNext(itesalida)):
+        if(it.hasNext(itellegada)):
+            llegada = it.next(itellegada)
+            llegadaentry = m.get(citibike['llegada'], llegada)
+            longitud = me.getValue(llegadaentry)['longitud']
+            latitud = me.getValue(llegadaentry)['latitud']
+            newradiollegada = pointCircle(latitud1, longitud1, latitud,longitud)
+            if(newradiollegada < maxradiollegada):
+                maxradiollegada = newradiollegada
+                idllegada = llegada
+            newradiosalida = pointCircle(latitud0, longitud0, latitud,longitud)
+            if(newradiosalida < maxradiosalida):
+                maxradiosalida = newradiosalida
+                idsalida = llegada
+
+
+
+        if(it.hasNext(itesalida)):
+            salida = it.next(itesalida)
+            salidaentry = m.get(citibike['salida'], salida)
+            longitud = me.getValue(salidaentry)['longitud']
+            latitud = me.getValue(salidaentry)['latitud']
+            newradiollegada = pointCircle(latitud1, longitud1, latitud,longitud)
+            if(newradiollegada < maxradiollegada):
+                maxradiollegada = newradiollegada
+                idllegada = llegada
+            newradiosalida = pointCircle(latitud0, longitud0, latitud,longitud)
+            if(newradiosalida < maxradiosalida):
+                maxradiosalida = newradiosalida
+                idsalida = llegada
+
+
+    djkgraph = djk.Dijkstra(citibike['graph'], idsalida)
+    camino = djk.pathTo(djkgraph, idllegada)
+    duracion = djk.distTo(djkgraph, idllegada)
+
+    return idsalida, idllegada, duracion, camino
+
+def pointCircle(latc, lonc, latp, lonp):
+    # Formula de Haversine
+    R = 6371 # Radio de la tierra en Km
+    dLat = aRadianes(float(latp)-float(latc)) # Pasar a radianes
+    dLon = aRadianes(float(lonp)-float(lonc))
+    a = math.sin(dLat/2)*2 + math.cos(aRadianes(float(latc))) * math.cos(aRadianes(float(latp))) * math.sin(dLon/2)*2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    d = R * c # Distancia en km
+    return d
+
+def aRadianes(deg):
+    return deg * (float(math.pi)/180.0)
 # ==============================
 # Funciones Helper
 # ==============================
@@ -386,10 +507,10 @@ def compareStopIds(stop, keyvaluestop):
     """
     Compara dos estaciones
     """
-    stopcode = keyvaluestop['key']
-    if (stop == stopcode):
+    stopcode = me.getKey(keyvaluestop)
+    if (str(stop) == str(stopcode)):
         return 0
-    elif (stop > stopcode):
+    elif (str(stop) > str(stopcode)):
         return 1
     else:
         return -1
